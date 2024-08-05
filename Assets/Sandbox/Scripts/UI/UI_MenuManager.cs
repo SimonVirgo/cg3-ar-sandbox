@@ -43,6 +43,7 @@ namespace ARSandbox
         public FireSimulation.UI_FireSimulationMenu UI_FireSimulationMenu;
         public GameObject UI_WindSimulationMenu;
         public GameObject UI_CalibrationExitButton;
+        public GameObject UI_ServerClientMenu;
 
         public Text UI_MenuTitle;
         public GameObject UI_MenuTitlePanel;
@@ -82,6 +83,7 @@ namespace ARSandbox
             UI_SandboxUIVisual.SetActive(false);
             UI_WindSimulationMenu.SetActive(false);
             UI_CalibrationExitButton.SetActive(false);
+            UI_ServerClientMenu.SetActive(false);
 
             CalibrationManager.OnCalibration += OnCalibration;
             CalibrationManager.OnCalibrationComplete += OnCalibrationComplete;
@@ -139,6 +141,12 @@ namespace ARSandbox
             UI_MenuTitle.text = "Bushfire Simulation";
             OpenMenu(UI_FireSimulation);
             UI_FireSimulationMenu.OpenMenu();
+        }
+        
+        public void OpenServerClient()
+        {
+            UI_MenuTitle.text = "Server Client";
+            OpenMenu(UI_ServerClientMenu);
         }
 
         public void OpenMainMenu()
