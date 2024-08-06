@@ -122,6 +122,26 @@ namespace ARSandbox
         private byte[] rawDepthData;
         public ushort[] depthDataBuffer { get; private set; }
 
+        public RenderTexture CurrentProcessedRT
+        {
+            get
+            {
+             switch (SandboxResolution)
+             {
+                 case SandboxResolution.Original:
+                     return processedDepthsRT;
+                 case SandboxResolution.Downsampled_1x:
+                     return processedDepthsRT_DS;
+                 case SandboxResolution.Downsampled_2x:
+                     return processedDepthsRT_DS2;
+                 case SandboxResolution.Downsampled_3x:
+                     return processedDepthsRT_DS3;
+                 default:
+                     return processedDepthsRT;
+             }   
+            }
+        }
+
         private void Start()
         {
             meshRenderer = GetComponent<MeshRenderer>();
@@ -551,7 +571,6 @@ namespace ARSandbox
             renderTexture.filterMode = FilterMode.Bilinear;
             renderTexture.enableRandomWrite = true;
             renderTexture.Create();
-
             return renderTexture;
         }
         private void ReleaseBuffers()
