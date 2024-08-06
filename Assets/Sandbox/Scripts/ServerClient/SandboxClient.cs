@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using ARSandbox;
+using Newtonsoft.Json;
 using UnityEngine.Networking;
 
 namespace Sandbox.Scripts.ServerClient
@@ -55,12 +56,18 @@ namespace Sandbox.Scripts.ServerClient
             Destroy(tempTexture);
         }
 
+        public class ImageResponse
+        {
+            [JsonProperty("image")]
+            public string Image { get; set; }
+        }
+        
         private bool ServerFrameReceived = false;
         private bool ReadyForNewFrame = true;
         private UnityWebRequest webRequest;
         private byte[] tempImageData;
 
-        private async void Update()
+        private void Update()
         {
             if (ServerFrameReceived)
             {
@@ -70,50 +77,48 @@ namespace Sandbox.Scripts.ServerClient
 
                 if (_serverRenderTexture == null)
                 {
-                    _serverRenderTexture = new RenderTexture(tempTexture.width, tempTexture.height, 0,
-                        RenderTextureFormat.ARGB32);
+                    _serverRenderTexture = new RenderTexture(tempTexture.width, tempTexture.height, 0, RenderTextureFormat.ARGB32);
                     _serverRenderTexture.Create();
                 }
 
                 RenderTexture.active = _serverRenderTexture;
                 Graphics.Blit(tempTexture, _serverRenderTexture);
                 RenderTexture.active = null;
+                Sandbox.SetShaderTexture("_FireSurfaceTex", _serverRenderTexture);
 
                 Destroy(tempTexture);
                 ReadyForNewFrame = true;
             }
+
             if (ReadyForNewFrame)
             {
-                using (webRequest = UnityWebRequest.Get("http://127.0.0.1:5000/testImage"))
-                {
-                    webRequest.SendWebRequest();
-                    ReadyForNewFrame = false;
-                }
+                ReadyForNewFrame = false;
+                webRequest = UnityWebRequest.Get("http://127.0.0.1:5000/testImage");
+                webRequest.SendWebRequest();
             }
-            if ( webRequest.isDone)
+
+            if (webRequest != null && webRequest.isDone)
             {
                 if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError)
                 {
                     Debug.LogError(webRequest.error);
-                    
                 }
                 else
                 {
                     string jsonResponse = webRequest.downloadHandler.text;
-                    var responseData = JsonUtility.FromJson<Dictionary<string, string>>(jsonResponse);
-                    if (responseData.ContainsKey("image"))
+                    ImageResponse responseData = JsonConvert.DeserializeObject<ImageResponse>(jsonResponse);
+                    if (responseData != null && !string.IsNullOrEmpty(responseData.Image))
                     {
+                        tempImageData = Convert.FromBase64String(responseData.Image);
                         ServerFrameReceived = true;
-                        tempImageData = Convert.FromBase64String(responseData["image"]);
-                        
                     }
                     else
                     {
-                        ServerFrameReceived = true;
                         Debug.LogError("Image data not found in response");
                     }
                 }
                 webRequest.Dispose();
+                webRequest = null;
             }
         }
 
