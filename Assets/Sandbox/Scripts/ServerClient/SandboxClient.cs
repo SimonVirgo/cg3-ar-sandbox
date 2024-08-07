@@ -28,14 +28,24 @@ namespace Sandbox.Scripts.ServerClient
             Sandbox.SetShaderTexture("_FireSurfaceTex", _serverRenderTexture);
             Debug.Log("Server Sandbox Enabled");
         }
-        
+
+        private void OnDisable()
+        {
+            // Release the RenderTexture when the object is disabled
+            if (_serverRenderTexture != null)
+            {
+                _serverRenderTexture.Release();
+                Destroy(_serverRenderTexture);
+                _serverRenderTexture = null;
+            }
+        }
 
         public class ImageResponse
         {
             [JsonProperty("image")]
             public string Image { get; set; }
         }
-        
+
         private bool ServerFrameReceived = false;
         private bool ReadyForNewFrame = true;
         private UnityWebRequest webRequest;
@@ -58,10 +68,36 @@ namespace Sandbox.Scripts.ServerClient
 
         private void SendFramePayload()
         {
-            UnityWebRequest webRequest = new UnityWebRequest("http://127.0.0.1:5000/sandbox", "POST");
-            webRequest.uploadHandler = new UploadHandlerRaw(GetCurrentFramePayload());
+            var renderTexture = Sandbox.CurrentProcessedRT;
+
+            if (renderTexture.format != RenderTextureFormat.RHalf)
+            {
+                Debug.LogError("Input RenderTexture is not in RHalf format");
+                return;
+            }
+
+            var texture2D = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RHalf, false);
+            RenderTexture.active = renderTexture;
+            texture2D.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+            texture2D.Apply();
+            RenderTexture.active = null;
+
+            float[] pixelData = new float[texture2D.width * texture2D.height];
+            Color[] pixels = texture2D.GetPixels();
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                pixelData[i] = pixels[i].r; // Assuming RHalf stores data in the red channel
+            }
+
+            var pixelDataBytes = new byte[pixelData.Length * sizeof(float)];
+            Buffer.BlockCopy(pixelData, 0, pixelDataBytes, 0, pixelDataBytes.Length);
+
+            string url = $"http://127.0.0.1:5000/sandbox?width={texture2D.width}&height={texture2D.height}";
+
+            UnityWebRequest webRequest = new UnityWebRequest(url, "POST");
+            webRequest.uploadHandler = new UploadHandlerRaw(pixelDataBytes);
             webRequest.downloadHandler = new DownloadHandlerBuffer();
-            webRequest.SetRequestHeader("Content-Type", "application/json");
+            webRequest.SetRequestHeader("Content-Type", "application/octet-stream");
 
             webRequest.SendWebRequest().completed += (AsyncOperation operation) =>
             {
@@ -85,6 +121,9 @@ namespace Sandbox.Scripts.ServerClient
                     }
                 }
             };
+
+            // Destroy the temporary Texture2D to free up memory
+            Destroy(texture2D);
         }
 
         private async void ProcessServerFrame()
@@ -106,7 +145,7 @@ namespace Sandbox.Scripts.ServerClient
             Destroy(tempTexture);
             ReadyForNewFrame = true;
         }
-        
+
         private byte[] GetCurrentFramePayload()
         {
             var renderTexture = Sandbox.CurrentProcessedRT;
@@ -137,10 +176,13 @@ namespace Sandbox.Scripts.ServerClient
                 data = pixelData
             };
 
-            string jsonString = JsonConvert.SerializeObject(jsonData); //this seems to be the cpu bottleneck.
+            string jsonString = JsonConvert.SerializeObject(jsonData); //this seems to be the cpu bottleneck. Better send a bytearray
             byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonString);
+
+            // Destroy the temporary Texture2D to free up memory
+            Destroy(texture2D);
+
             return bodyRaw;
         }
-        
     }
 }
