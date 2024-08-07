@@ -6,6 +6,7 @@ using UnityEngine;
 using ARSandbox;
 using Newtonsoft.Json;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 namespace Sandbox.Scripts.ServerClient
 {
@@ -15,10 +16,24 @@ namespace Sandbox.Scripts.ServerClient
         public Shader ServerShader;
         private RenderTexture _serverRenderTexture;
         private SandboxDescriptor sandboxDescriptor;
+        
+        //UI Elements
+        public Text requestLog;
+        public Text ipInput;
+        public Text portInput;
+        public Text endpointInput;
+        
+        //Helpers
+        private string _sanitizedUrl;
+        private bool _running;
+        
+        //UIHelper 
 
         private void Setup()
         {
-            Debug.Log("Server Sandbox Setup");
+           ipInput.text = "127.0.0 .1";
+           portInput.text = "5000";
+           endpointInput.text = "sandbox";
         }
 
         private void OnEnable()
@@ -26,6 +41,24 @@ namespace Sandbox.Scripts.ServerClient
             Sandbox.SetSandboxShader(ServerShader);
             Sandbox.SetShaderTexture("_FireSurfaceTex", _serverRenderTexture);
             Debug.Log("Server Sandbox Enabled");
+        }
+
+        public void Run()
+        {
+            _sanitizedUrl = ParseSanitizedUrl();
+            _running = true;
+        }
+        
+        public void Stop()
+        {
+            _running = false;
+            // Release the RenderTexture when the object is disabled
+            if (_serverRenderTexture != null)
+            {
+                _serverRenderTexture.Release();
+                Destroy(_serverRenderTexture);
+                _serverRenderTexture = null;
+            }
         }
 
         private void OnDisable()
@@ -52,6 +85,8 @@ namespace Sandbox.Scripts.ServerClient
 
         private void Update()
         {
+            if (!_running) return;
+            
             if (ServerFrameReceived)
             {
                 ServerFrameReceived = false;
@@ -91,7 +126,7 @@ namespace Sandbox.Scripts.ServerClient
             var pixelDataBytes = new byte[pixelData.Length * sizeof(float)];
             Buffer.BlockCopy(pixelData, 0, pixelDataBytes, 0, pixelDataBytes.Length);
 
-            string url = $"http://127.0.0.1:5000/sandbox?width={texture2D.width}&height={texture2D.height}";
+            string url = $"{_sanitizedUrl}?width={texture2D.width}&height={texture2D.height}";
 
             UnityWebRequest webRequest = new UnityWebRequest(url, "POST");
             webRequest.uploadHandler = new UploadHandlerRaw(pixelDataBytes);
@@ -123,6 +158,42 @@ namespace Sandbox.Scripts.ServerClient
 
             // Destroy the temporary Texture2D to free up memory
             Destroy(texture2D);
+        }
+
+        private string ParseSanitizedUrl()
+        {
+            string ip = ipInput.text;
+            string port = portInput.text;
+            string endpoint = endpointInput.text;
+
+            if (string.IsNullOrEmpty(ip) || string.IsNullOrEmpty(port) || string.IsNullOrEmpty(endpoint))
+            {
+                Debug.LogError("IP, Port, or Endpoint is empty");
+                
+            }
+            //remove http://
+            if (ip.StartsWith("http://"))
+            {
+                ip = ip.Substring(7);
+            }
+            //check if port is a number
+            if (!int.TryParse(port, out _))
+            {
+                Debug.LogError("Port is not a number");
+            }
+            //remove / from endpoint
+            if (endpoint.StartsWith("/"))
+            {
+                endpoint = endpoint.Substring(1);
+            }
+            // remove trailing /
+            if (endpoint.EndsWith("/"))
+            {
+                endpoint = endpoint.Substring(0, endpoint.Length - 1);
+            }
+            
+
+            return $"http://{ip}:{port}/{endpoint}";
         }
 
         private async void ProcessServerFrame()
