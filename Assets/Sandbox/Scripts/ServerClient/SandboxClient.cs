@@ -17,17 +17,16 @@ namespace Sandbox.Scripts.ServerClient
         private RenderTexture _serverRenderTexture;
         private SandboxDescriptor sandboxDescriptor;
         
+        private string _sanitizedUrl;
+        private bool _running;
+        
         //UI Elements
         public Text requestLog;
         public Text ipInput;
         public Text portInput;
         public Text endpointInput;
         
-        //Helpers
-        private string _sanitizedUrl;
-        private bool _running;
         
-        //UIHelper 
 
         private void Setup()
         {
@@ -159,6 +158,26 @@ namespace Sandbox.Scripts.ServerClient
             // Destroy the temporary Texture2D to free up memory
             Destroy(texture2D);
         }
+        
+        private async void ProcessServerFrame()
+        {
+            Texture2D tempTexture = new Texture2D(2, 2);
+            tempTexture.LoadImage(tempImageData);
+
+            if (_serverRenderTexture == null)
+            {
+                _serverRenderTexture = new RenderTexture(tempTexture.width, tempTexture.height, 0, RenderTextureFormat.ARGB32);
+                _serverRenderTexture.Create();
+            }
+
+            RenderTexture.active = _serverRenderTexture;
+            Graphics.Blit(tempTexture, _serverRenderTexture);
+            RenderTexture.active = null;
+            Sandbox.SetShaderTexture("_FireSurfaceTex", _serverRenderTexture);
+
+            Destroy(tempTexture);
+            ReadyForNewFrame = true;
+        }
 
         private string ParseSanitizedUrl()
         {
@@ -169,7 +188,6 @@ namespace Sandbox.Scripts.ServerClient
             if (string.IsNullOrEmpty(ip) || string.IsNullOrEmpty(port) || string.IsNullOrEmpty(endpoint))
             {
                 Debug.LogError("IP, Port, or Endpoint is empty");
-                
             }
             //remove http://
             if (ip.StartsWith("http://"))
@@ -192,67 +210,19 @@ namespace Sandbox.Scripts.ServerClient
                 endpoint = endpoint.Substring(0, endpoint.Length - 1);
             }
             
-
             return $"http://{ip}:{port}/{endpoint}";
         }
-
-        private async void ProcessServerFrame()
+        
+        private void UserLog(string message)
         {
-            Texture2D tempTexture = new Texture2D(2, 2);
-            tempTexture.LoadImage(tempImageData);
-
-            if (_serverRenderTexture == null)
-            {
-                _serverRenderTexture = new RenderTexture(tempTexture.width, tempTexture.height, 0, RenderTextureFormat.ARGB32);
-                _serverRenderTexture.Create();
-            }
-
-            RenderTexture.active = _serverRenderTexture;
-            Graphics.Blit(tempTexture, _serverRenderTexture);
-            RenderTexture.active = null;
-            Sandbox.SetShaderTexture("_FireSurfaceTex", _serverRenderTexture);
-
-            Destroy(tempTexture);
-            ReadyForNewFrame = true;
+            Debug.Log(message);
+        }
+        
+        private void UserLogError(string message)
+        {
+            Debug.LogError(message);
         }
 
-        private byte[] GetCurrentFramePayload()
-        {
-            var renderTexture = Sandbox.CurrentProcessedRT;
-
-            if (renderTexture.format != RenderTextureFormat.RHalf)
-            {
-                Debug.LogError("Input RenderTexture is not in RHalf format");
-                return null;
-            }
-
-            Texture2D texture2D = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RHalf, false);
-            RenderTexture.active = renderTexture;
-            texture2D.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-            texture2D.Apply();
-            RenderTexture.active = null;
-
-            float[] pixelData = new float[texture2D.width * texture2D.height];
-            Color[] pixels = texture2D.GetPixels();
-            for (int i = 0; i < pixels.Length; i++)
-            {
-                pixelData[i] = pixels[i].r; // Assuming RHalf stores data in the red channel
-            }
-
-            var jsonData = new
-            {
-                width = texture2D.width,
-                height = texture2D.height,
-                data = pixelData
-            };
-
-            string jsonString = JsonConvert.SerializeObject(jsonData); //this seems to be the cpu bottleneck. Better send a bytearray
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonString);
-
-            // Destroy the temporary Texture2D to free up memory
-            Destroy(texture2D);
-
-            return bodyRaw;
-        }
+        
     }
 }
