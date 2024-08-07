@@ -18,13 +18,14 @@ namespace Sandbox.Scripts.ServerClient
         private SandboxDescriptor sandboxDescriptor;
         
         private string _sanitizedUrl;
-        private bool _running;
+        private bool _running= false;
         
         //UI Elements
         public Text requestLog;
         public Text ipInput;
         public Text portInput;
         public Text endpointInput;
+        public Text startStopButtonText;
         
         
 
@@ -42,13 +43,26 @@ namespace Sandbox.Scripts.ServerClient
             Debug.Log("Server Sandbox Enabled");
         }
 
-        public void Run()
+        public void ToggleStartStop()
+        {
+            if (_running)
+            {
+                Stop();
+                startStopButtonText.text = "Start";
+            }
+            else
+            {
+                Run();
+                startStopButtonText.text = "Stop";
+            }
+        }
+        private void Run()
         {
             _sanitizedUrl = ParseSanitizedUrl();
             _running = true;
         }
         
-        public void Stop()
+        private void Stop()
         {
             _running = false;
             // Release the RenderTexture when the object is disabled
