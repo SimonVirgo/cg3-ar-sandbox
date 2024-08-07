@@ -200,9 +200,9 @@ namespace Sandbox.Scripts.ServerClient
         private string ParseSanitizedUrl()
         {
             //set and remove whitespace
-            string ip = ipInput.text.Trim();
-            string port = portInput.text.Trim();
-            string endpoint = endpointInput.text.Trim();
+            string ip = ipInput.text.Replace(" ", "").Replace("\u200B","").Trim();
+            string port = portInput.text.Replace(" ", "").Replace("\u200B","").Trim();
+            string endpoint = endpointInput.text.Replace(" ", "").Replace("\u200B","").Trim();
 
             if (string.IsNullOrEmpty(ip) || string.IsNullOrEmpty(port) || string.IsNullOrEmpty(endpoint))
             {
