@@ -3194,7 +3194,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Pause Simulation
+  m_Text: Start
 --- !u!222 &90935967
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -7042,7 +7042,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 112.6763, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &200884812
@@ -19385,7 +19385,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 15, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &508804701
@@ -41483,7 +41483,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 15, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1062406844
@@ -56457,6 +56457,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Sandbox: {fileID: 1466343887}
   ServerShader: {fileID: 0}
+  requestLog: {fileID: 0}
+  ipInput: {fileID: 0}
+  portInput: {fileID: 0}
+  endpointInput: {fileID: 0}
+  startStopButtonText: {fileID: 0}
 --- !u!1 &1477197532
 GameObject:
   m_ObjectHideFlags: 0
@@ -57270,7 +57275,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 97.12717, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1501968541
@@ -63697,7 +63702,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 102.6763, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1685399357
@@ -64645,7 +64650,6 @@ GameObject:
   - component: {fileID: 1697035305}
   - component: {fileID: 1697035304}
   - component: {fileID: 1697035303}
-  - component: {fileID: 1697035302}
   m_Layer: 0
   m_Name: SimulationOptions
   m_TagString: Untagged
@@ -64673,23 +64677,6 @@ RectTransform:
   m_AnchoredPosition: {x: 1645.7999, y: -540}
   m_SizeDelta: {x: 488.4, y: 1020}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1697035302
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1697035300}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7577530d38f9a54489b57791d662101, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  FireSimulation: {fileID: 1226702329}
-  UI_WindDirectionDial: {fileID: 0}
-  UI_WindSpeedSlider: {fileID: 0}
-  UI_PlayPauseBtnText: {fileID: 90935966}
-  UI_ZoomSlider: {fileID: 0}
 --- !u!114 &1697035303
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -75273,9 +75260,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1697035302}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: UI_TogglePauseSimulation
+      - m_Target: {fileID: 1469917654}
+        m_TargetAssemblyTypeName: Sandbox.Scripts.ServerClient.SandboxClient, Assembly-CSharp
+        m_MethodName: ToggleStartStop
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -78671,7 +78658,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 107.12717, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2012059355
