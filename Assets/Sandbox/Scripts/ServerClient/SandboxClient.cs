@@ -15,7 +15,6 @@ namespace Sandbox.Scripts.ServerClient
         public Shader ServerShader;
         private RenderTexture _serverRenderTexture;
         private SandboxDescriptor sandboxDescriptor;
-        SandboxWebClient sandboxWebClient = new SandboxWebClient();
 
         private void Setup()
         {
