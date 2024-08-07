@@ -7,6 +7,7 @@ using ARSandbox;
 using Newtonsoft.Json;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using TMPro;
 
 namespace Sandbox.Scripts.ServerClient
 {
@@ -21,17 +22,17 @@ namespace Sandbox.Scripts.ServerClient
         private bool _running= false;
         
         //UI Elements
-        public Text requestLog;
-        public Text ipInput;
-        public Text portInput;
-        public Text endpointInput;
+        public TextMeshProUGUI requestLog;
+        public TextMeshProUGUI ipInput;
+        public TextMeshProUGUI portInput;
+        public TextMeshProUGUI endpointInput;
         public Text startStopButtonText;
         
         
 
-        private void Setup()
+        public void Setup()
         {
-           ipInput.text = "127.0.0 .1";
+           ipInput.text = "127.0.0.1";
            portInput.text = "5000";
            endpointInput.text = "sandbox";
         }
@@ -76,6 +77,8 @@ namespace Sandbox.Scripts.ServerClient
 
         private void OnDisable()
         {
+            _running= false;
+            
             // Release the RenderTexture when the object is disabled
             if (_serverRenderTexture != null)
             {
@@ -83,6 +86,7 @@ namespace Sandbox.Scripts.ServerClient
                 Destroy(_serverRenderTexture);
                 _serverRenderTexture = null;
             }
+            //reset the shader to default
         }
 
         public class ImageResponse
@@ -195,14 +199,16 @@ namespace Sandbox.Scripts.ServerClient
 
         private string ParseSanitizedUrl()
         {
-            string ip = ipInput.text;
-            string port = portInput.text;
-            string endpoint = endpointInput.text;
+            //set and remove whitespace
+            string ip = ipInput.text.Trim();
+            string port = portInput.text.Trim();
+            string endpoint = endpointInput.text.Trim();
 
             if (string.IsNullOrEmpty(ip) || string.IsNullOrEmpty(port) || string.IsNullOrEmpty(endpoint))
             {
                 Debug.LogError("IP, Port, or Endpoint is empty");
             }
+            
             //remove http://
             if (ip.StartsWith("http://"))
             {
