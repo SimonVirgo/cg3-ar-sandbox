@@ -46,40 +46,28 @@ namespace Sandbox.Scripts.ServerClient
             if (ServerFrameReceived)
             {
                 ServerFrameReceived = false;
-                Texture2D tempTexture = new Texture2D(2, 2);
-                tempTexture.LoadImage(tempImageData);
-
-                if (_serverRenderTexture == null)
-                {
-                    _serverRenderTexture = new RenderTexture(tempTexture.width, tempTexture.height, 0, RenderTextureFormat.ARGB32);
-                    _serverRenderTexture.Create();
-                }
-
-                RenderTexture.active = _serverRenderTexture;
-                Graphics.Blit(tempTexture, _serverRenderTexture);
-                RenderTexture.active = null;
-                Sandbox.SetShaderTexture("_FireSurfaceTex", _serverRenderTexture);
-
-                Destroy(tempTexture);
-                ReadyForNewFrame = true;
+                ProcessServerFrame();
             }
 
             if (ReadyForNewFrame)
             {
                 ReadyForNewFrame = false;
-             //   webRequest = UnityWebRequest.Get("http://127.0.0.1:5000/testImage");
-              
-                webRequest = new UnityWebRequest("http://127.0.0.1:5000/sandbox", "POST");
-                webRequest.uploadHandler = new UploadHandlerRaw(GetCurrentFramePayload());
-                webRequest.downloadHandler = new DownloadHandlerBuffer();
-                webRequest.SetRequestHeader("Content-Type", "application/json");
-                webRequest.SendWebRequest();
+                SendFramePayload(); // Start the method without waiting for it to complete
             }
+        }
 
-            if (webRequest != null && webRequest.isDone)
+        private void SendFramePayload()
+        {
+            UnityWebRequest webRequest = new UnityWebRequest("http://127.0.0.1:5000/sandbox", "POST");
+            webRequest.uploadHandler = new UploadHandlerRaw(GetCurrentFramePayload());
+            webRequest.downloadHandler = new DownloadHandlerBuffer();
+            webRequest.SetRequestHeader("Content-Type", "application/json");
+
+            webRequest.SendWebRequest().completed += (AsyncOperation operation) =>
             {
-                if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError)
-                { 
+                if (webRequest.result == UnityWebRequest.Result.ConnectionError ||
+                    webRequest.result == UnityWebRequest.Result.ProtocolError)
+                {
                     Debug.LogError(webRequest.error);
                 }
                 else
@@ -96,9 +84,27 @@ namespace Sandbox.Scripts.ServerClient
                         Debug.LogError("Image data not found in response");
                     }
                 }
-                webRequest.Dispose();
-                webRequest = null;
+            };
+        }
+
+        private async void ProcessServerFrame()
+        {
+            Texture2D tempTexture = new Texture2D(2, 2);
+            tempTexture.LoadImage(tempImageData);
+
+            if (_serverRenderTexture == null)
+            {
+                _serverRenderTexture = new RenderTexture(tempTexture.width, tempTexture.height, 0, RenderTextureFormat.ARGB32);
+                _serverRenderTexture.Create();
             }
+
+            RenderTexture.active = _serverRenderTexture;
+            Graphics.Blit(tempTexture, _serverRenderTexture);
+            RenderTexture.active = null;
+            Sandbox.SetShaderTexture("_FireSurfaceTex", _serverRenderTexture);
+
+            Destroy(tempTexture);
+            ReadyForNewFrame = true;
         }
         
         private byte[] GetCurrentFramePayload()
@@ -131,7 +137,7 @@ namespace Sandbox.Scripts.ServerClient
                 data = pixelData
             };
 
-            string jsonString = JsonConvert.SerializeObject(jsonData);
+            string jsonString = JsonConvert.SerializeObject(jsonData); //this seems to be the cpu bottleneck.
             byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonString);
             return bodyRaw;
         }
