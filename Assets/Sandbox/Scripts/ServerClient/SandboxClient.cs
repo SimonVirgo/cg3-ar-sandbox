@@ -62,6 +62,13 @@ namespace Sandbox.Scripts.ServerClient
         private void Stop()
         {
             _running = false;
+            // Release the RenderTexture when the object is disabled
+            if (_serverRenderTexture != null)
+            {
+                _serverRenderTexture.Release();
+                Destroy(_serverRenderTexture);
+                _serverRenderTexture = null;
+            }
             
         }
 
