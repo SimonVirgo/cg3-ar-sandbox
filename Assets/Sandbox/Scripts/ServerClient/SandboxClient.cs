@@ -42,8 +42,7 @@ namespace Sandbox.Scripts.ServerClient
             Sandbox.SetSandboxShader(ServerShader);
             Sandbox.SetShaderTexture("_FireSurfaceTex", _serverRenderTexture);
             sandboxDescriptor = Sandbox.GetSandboxDescriptor();
-            
-            Debug.Log("Server Sandbox Enabled");
+            LoadConfig();
         }
 
         public void ToggleStartStop()
@@ -290,6 +289,15 @@ namespace Sandbox.Scripts.ServerClient
             SandboxClientConfig.SaveConfig(config);
             UserLog("Config saved");
             _configSaved = true;
+        }
+        
+        private void LoadConfig()
+        {
+            var config = SandboxClientConfig.LoadConfig();
+            ipInput.text = config.Ip;
+            portInput.text = config.Port;
+            endpointInput.text = config.Endpoint;
+            httpDropdown.value = config.HttpMethod;
         }
 
         
