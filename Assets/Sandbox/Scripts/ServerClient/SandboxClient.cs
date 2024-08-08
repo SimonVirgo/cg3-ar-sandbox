@@ -96,6 +96,7 @@ namespace Sandbox.Scripts.ServerClient
                 _serverRenderTexture = null;
             }
             //reset the shader to default
+            Sandbox.SetDefaultShader();
         }
 
         public class ImageResponse
