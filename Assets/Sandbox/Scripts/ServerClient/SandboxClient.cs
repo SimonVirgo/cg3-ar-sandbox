@@ -23,9 +23,9 @@ namespace Sandbox.Scripts.ServerClient
         
         //UI Elements
         public TextMeshProUGUI requestLog;
-        public TextMeshProUGUI ipInput;
-        public TextMeshProUGUI portInput;
-        public TextMeshProUGUI endpointInput;
+        public TMP_InputField  ipInput;
+        public TMP_InputField  portInput;
+        public TMP_InputField  endpointInput;
         public Text startStopButtonText;
 
         private void OnEnable()
@@ -34,9 +34,9 @@ namespace Sandbox.Scripts.ServerClient
             Sandbox.SetShaderTexture("_FireSurfaceTex", _serverRenderTexture);
             
             Debug.Log("Server Sandbox Enabled");
-            ipInput.SetText("127.0.0.1"); 
-            portInput.SetText("5000");
-            endpointInput.SetText("sandbox");
+            ipInput.text = "127.0.0.1"; 
+            portInput.text="5000";
+            endpointInput.text="sandbox";
         }
 
         public void ToggleStartStop()
