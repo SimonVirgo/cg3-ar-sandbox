@@ -22,7 +22,7 @@ namespace Sandbox.Scripts.ServerClient
         private bool _running= false;
         
         //UI Elements
-        public TextMeshProUGUI requestLog;
+        public TMP_Text requestLog;
         public TMP_InputField  ipInput;
         public TMP_InputField  portInput;
         public TMP_InputField  endpointInput;
