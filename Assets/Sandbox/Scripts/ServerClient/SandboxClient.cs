@@ -44,19 +44,17 @@ namespace Sandbox.Scripts.ServerClient
             if (_running)
             {
                 Stop();
-                startStopButtonText.text = "Start";
             }
             else
             {
                 Run();
-                startStopButtonText.text = "Stop";
             }
         }
         private void Run()
         {
             _sanitizedUrl = ParseSanitizedUrl();
             _running = true;
-
+            startStopButtonText.text = "Stop";
         }
         
         private void Stop()
@@ -69,13 +67,13 @@ namespace Sandbox.Scripts.ServerClient
                 Destroy(_serverRenderTexture);
                 _serverRenderTexture = null;
             }
+            startStopButtonText.text = "Start";
             
         }
 
         private void OnDisable()
         {
-            _running= false;
-            
+            Stop();
             // Release the RenderTexture when the object is disabled
             if (_serverRenderTexture != null)
             {
@@ -121,6 +119,7 @@ namespace Sandbox.Scripts.ServerClient
             if (renderTexture.format != RenderTextureFormat.RHalf)
             {
                 Debug.LogError("Input RenderTexture is not in RHalf format");
+                Stop();
                 return;
             }
 
@@ -153,6 +152,7 @@ namespace Sandbox.Scripts.ServerClient
                     webRequest.result == UnityWebRequest.Result.ProtocolError)
                 {
                     Debug.LogError(webRequest.error);
+                    Stop();
                 }
                 else
                 {
@@ -166,6 +166,7 @@ namespace Sandbox.Scripts.ServerClient
                     else
                     {
                         Debug.LogError("Image data not found in response");
+                        Stop();
                     }
                 }
             };
@@ -204,6 +205,7 @@ namespace Sandbox.Scripts.ServerClient
             if (string.IsNullOrEmpty(ip) || string.IsNullOrEmpty(port) || string.IsNullOrEmpty(endpoint))
             {
                 Debug.LogError("IP, Port, or Endpoint is empty");
+                Stop();
             }
             
             //remove http://
@@ -215,6 +217,7 @@ namespace Sandbox.Scripts.ServerClient
             if (!int.TryParse(port, out _))
             {
                 Debug.LogError("Port is not a number");
+                Stop();
             }
             //remove / from endpoint
             if (endpoint.StartsWith("/"))
