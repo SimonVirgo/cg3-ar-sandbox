@@ -22,6 +22,11 @@ namespace Sandbox.Scripts.ServerClient
         private bool _running= false;
         private List<string> logMessages = new List<string>();
         
+        private bool ServerFrameReceived = false;
+        private bool ReadyForNewFrame = true;
+        private UnityWebRequest webRequest;
+        private byte[] tempImageData;
+        
         //UI Elements
         public TMP_Text requestLog;
         public TMP_InputField  ipInput;
@@ -59,6 +64,11 @@ namespace Sandbox.Scripts.ServerClient
             _sanitizedUrl = ParseSanitizedUrl();
             _running = true;
             startStopButtonText.text = "Stop";
+            
+            //reset
+            ServerFrameReceived = false;
+            ReadyForNewFrame = true;
+            webRequest = null;
         }
         
         private void Stop()
@@ -93,12 +103,7 @@ namespace Sandbox.Scripts.ServerClient
             [JsonProperty("image")]
             public string Image { get; set; }
         }
-
-        private bool ServerFrameReceived = false;
-        private bool ReadyForNewFrame = true;
-        private UnityWebRequest webRequest;
-        private byte[] tempImageData;
-
+        
         private void Update()
         {
             if (!_running) return;
@@ -145,7 +150,7 @@ namespace Sandbox.Scripts.ServerClient
 
             string url = $"{_sanitizedUrl}?width={texture2D.width}&height={texture2D.height}";
 
-            UnityWebRequest webRequest = new UnityWebRequest(url, "POST");
+            UnityWebRequest webRequest = new UnityWebRequest(url, httpDropdown.options[httpDropdown.value].text);
             webRequest.uploadHandler = new UploadHandlerRaw(pixelDataBytes);
             webRequest.downloadHandler = new DownloadHandlerBuffer();
             webRequest.SetRequestHeader("Content-Type", "application/octet-stream");
@@ -164,7 +169,7 @@ namespace Sandbox.Scripts.ServerClient
                     ImageResponse responseData = JsonConvert.DeserializeObject<ImageResponse>(jsonResponse);
                     if (responseData != null && !string.IsNullOrEmpty(responseData.Image))
                     {
-                        UserLog(webRequest.responseCode.ToString());
+                        UserLog(webRequest.responseCode+" - "+webRequest.result);
                         tempImageData = Convert.FromBase64String(responseData.Image);
                         ServerFrameReceived = true;
                     }
@@ -239,13 +244,19 @@ namespace Sandbox.Scripts.ServerClient
             return $"http://{ip}:{port}/{endpoint}";
         }
         
+        private string GetTimestamp()
+        {
+            return DateTime.Now.ToString("HH:mm:ss");
+        }
+
         private void AddLogMessage(string message, string color)
         {
+            string timestampedMessage = $"[{GetTimestamp()}] {message}";
             if (logMessages.Count >= 12)
             {
                 logMessages.RemoveAt(0);
             }
-            logMessages.Add($"<color={color}>{message}</color>");
+            logMessages.Add($"<color={color}>{timestampedMessage}</color>");
             UpdateLogUI();
         }
 
