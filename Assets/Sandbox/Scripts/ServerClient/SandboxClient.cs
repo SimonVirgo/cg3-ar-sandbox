@@ -20,6 +20,7 @@ namespace Sandbox.Scripts.ServerClient
         
         private string _sanitizedUrl;
         private bool _running= false;
+        private List<string> logMessages = new List<string>();
         
         //UI Elements
         public TMP_Text requestLog;
@@ -54,6 +55,7 @@ namespace Sandbox.Scripts.ServerClient
         }
         private void Run()
         {
+            requestLog.text = "";
             _sanitizedUrl = ParseSanitizedUrl();
             _running = true;
             startStopButtonText.text = "Stop";
@@ -153,7 +155,7 @@ namespace Sandbox.Scripts.ServerClient
                 if (webRequest.result == UnityWebRequest.Result.ConnectionError ||
                     webRequest.result == UnityWebRequest.Result.ProtocolError)
                 {
-                    Debug.LogError(webRequest.error);
+                    UserLogError(webRequest.error);
                     Stop();
                 }
                 else
@@ -162,12 +164,13 @@ namespace Sandbox.Scripts.ServerClient
                     ImageResponse responseData = JsonConvert.DeserializeObject<ImageResponse>(jsonResponse);
                     if (responseData != null && !string.IsNullOrEmpty(responseData.Image))
                     {
+                        UserLog(webRequest.responseCode.ToString());
                         tempImageData = Convert.FromBase64String(responseData.Image);
                         ServerFrameReceived = true;
                     }
                     else
                     {
-                        Debug.LogError("Image data not found in response");
+                        UserLogError("Image data not found in response");
                         Stop();
                     }
                 }
@@ -206,7 +209,8 @@ namespace Sandbox.Scripts.ServerClient
 
             if (string.IsNullOrEmpty(ip) || string.IsNullOrEmpty(port) || string.IsNullOrEmpty(endpoint))
             {
-                Debug.LogError("IP, Port, or Endpoint is empty");
+                UserLogError("IP, Port, or Endpoint is empty");
+                
                 Stop();
             }
             
@@ -218,7 +222,7 @@ namespace Sandbox.Scripts.ServerClient
             //check if port is a number
             if (!int.TryParse(port, out _))
             {
-                Debug.LogError("Port is not a number");
+                UserLogError("Port is not a number");
                 Stop();
             }
             //remove / from endpoint
@@ -235,14 +239,31 @@ namespace Sandbox.Scripts.ServerClient
             return $"http://{ip}:{port}/{endpoint}";
         }
         
+        private void AddLogMessage(string message, string color)
+        {
+            if (logMessages.Count >= 12)
+            {
+                logMessages.RemoveAt(0);
+            }
+            logMessages.Add($"<color={color}>{message}</color>");
+            UpdateLogUI();
+        }
+
+        private void UpdateLogUI()
+        {
+            requestLog.text = string.Join("\n", logMessages);
+        }
+
         private void UserLog(string message)
         {
             Debug.Log(message);
+            AddLogMessage(message, "white");
         }
-        
+
         private void UserLogError(string message)
         {
             Debug.LogError(message);
+            AddLogMessage(message, "red");
         }
 
         
