@@ -24,6 +24,7 @@ namespace Sandbox.Scripts.ServerClient
         
         private bool ServerFrameReceived = false;
         private bool ReadyForNewFrame = true;
+        private bool _configSaved = false;
         private UnityWebRequest webRequest;
         private byte[] tempImageData;
         
@@ -43,9 +44,6 @@ namespace Sandbox.Scripts.ServerClient
             sandboxDescriptor = Sandbox.GetSandboxDescriptor();
             
             Debug.Log("Server Sandbox Enabled");
-            ipInput.text = "127.0.0.1"; 
-            portInput.text="5000";
-            endpointInput.text="sandbox";
         }
 
         public void ToggleStartStop()
@@ -83,7 +81,7 @@ namespace Sandbox.Scripts.ServerClient
                 _serverRenderTexture = null;
             }
             startStopButtonText.text = "Start";
-            
+            _configSaved = false;
         }
 
         private void OnDisable()
@@ -121,6 +119,8 @@ namespace Sandbox.Scripts.ServerClient
                 ReadyForNewFrame = false;
                 SendFramePayload(); // Start the method without waiting for it to complete
             }
+            
+            if (_configSaved) SaveConfig();
         }
 
         private void SendFramePayload()
@@ -220,7 +220,6 @@ namespace Sandbox.Scripts.ServerClient
                 
                 Stop();
             }
-            
             //remove http://
             if (ip.StartsWith("http://"))
             {
@@ -277,6 +276,20 @@ namespace Sandbox.Scripts.ServerClient
         {
             Debug.LogError(message);
             AddLogMessage(message, "red");
+        }
+
+        private void SaveConfig()
+        {
+            var config = new SandboxClientConfig
+            {
+                Ip = ipInput.text,
+                Port = portInput.text,
+                Endpoint = endpointInput.text,
+                HttpMethod = httpDropdown.value
+            };
+            SandboxClientConfig.SaveConfig(config);
+            UserLog("Config saved");
+            _configSaved = true;
         }
 
         
