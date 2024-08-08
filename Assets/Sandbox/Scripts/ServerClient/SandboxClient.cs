@@ -26,7 +26,9 @@ namespace Sandbox.Scripts.ServerClient
         public TMP_InputField  ipInput;
         public TMP_InputField  portInput;
         public TMP_InputField  endpointInput;
+        public TMP_Dropdown httpDropdown;
         public Text startStopButtonText;
+       
 
         private void OnEnable()
         {
