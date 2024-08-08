@@ -40,6 +40,7 @@ namespace Sandbox.Scripts.ServerClient
         {
             Sandbox.SetSandboxShader(ServerShader);
             Sandbox.SetShaderTexture("_FireSurfaceTex", _serverRenderTexture);
+            sandboxDescriptor = Sandbox.GetSandboxDescriptor();
             
             Debug.Log("Server Sandbox Enabled");
             ipInput.text = "127.0.0.1"; 
@@ -149,7 +150,7 @@ namespace Sandbox.Scripts.ServerClient
             var pixelDataBytes = new byte[pixelData.Length * sizeof(float)];
             Buffer.BlockCopy(pixelData, 0, pixelDataBytes, 0, pixelDataBytes.Length);
 
-            string url = $"{_sanitizedUrl}?width={texture2D.width}&height={texture2D.height}";
+            string url = $"{_sanitizedUrl}?width={texture2D.width}&height={texture2D.height}&minDepth={sandboxDescriptor.MinDepth}&maxDepth={sandboxDescriptor.MaxDepth}";
 
             UnityWebRequest webRequest = new UnityWebRequest(url, httpDropdown.options[httpDropdown.value].text);
             webRequest.uploadHandler = new UploadHandlerRaw(pixelDataBytes);
