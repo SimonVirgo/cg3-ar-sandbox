@@ -120,7 +120,7 @@ namespace Sandbox.Scripts.ServerClient
                 SendFramePayload(); // Start the method without waiting for it to complete
             }
             
-            if (_configSaved) SaveConfig();
+            if (!_configSaved) SaveConfig();
         }
 
         private void SendFramePayload()
