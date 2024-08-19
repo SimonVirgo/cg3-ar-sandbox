@@ -61,6 +61,7 @@ namespace Sandbox.Scripts.ServerClient
             requestLog.text = "";
             _sanitizedUrl = ParseSanitizedUrl();
             _running = true;
+            _configSaved = false;
             startStopButtonText.text = "Stop";
             
             //reset
@@ -80,7 +81,6 @@ namespace Sandbox.Scripts.ServerClient
                 _serverRenderTexture = null;
             }
             startStopButtonText.text = "Start";
-            _configSaved = false;
         }
 
         private void OnDisable()
@@ -119,7 +119,6 @@ namespace Sandbox.Scripts.ServerClient
                 SendFramePayload(); // Start the method without waiting for it to complete
             }
             
-            if (!_configSaved) SaveConfig();
         }
 
         private void SendFramePayload()
@@ -171,6 +170,7 @@ namespace Sandbox.Scripts.ServerClient
                     if (responseData != null && !string.IsNullOrEmpty(responseData.Image))
                     {
                         UserLog(webRequest.responseCode+" - "+webRequest.result);
+                        if (!_configSaved) SaveConfig(); // Save the config after the first successful request
                         tempImageData = Convert.FromBase64String(responseData.Image);
                         ServerFrameReceived = true;
                     }
